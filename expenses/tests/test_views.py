@@ -26,3 +26,32 @@ class ExpenseAPITests(TestCase):
         self.assertTrue(
             Expense.objects.filter(recipient=self.expense_data["recipient"]).exists()
         )
+
+    def test_create_expense_returns_correct_data(self):
+        response = self.client.post(
+            "/api/v1/expenses", self.expense_data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201)
+
+        returned_expense = response.json()
+        self.assertEqual(returned_expense["date"], self.expense_data["date"])
+        self.assertEqual(
+            Decimal(returned_expense["amount"]), Decimal(self.expense_data["amount"])
+        )
+        self.assertEqual(returned_expense["account"], self.expense_data["account"])
+        self.assertEqual(returned_expense["category"], self.expense_data["category"])
+        self.assertEqual(returned_expense["recipient"], self.expense_data["recipient"])
+        self.assertEqual(
+            returned_expense["description"], self.expense_data["description"]
+        )
+
+    def test_create_expense_returns_valid_id(self):
+        response = self.client.post(
+            "/api/v1/expenses", self.expense_data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201)
+
+        returned_expense = response.json()
+        self.assertIsNotNone(returned_expense["id"])
+        self.assertIsInstance(returned_expense["id"], int)
+        self.assertTrue(Expense.objects.filter(id=returned_expense["id"]).exists())
