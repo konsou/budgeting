@@ -20,7 +20,7 @@ class ExpenseAPITests(TestCase):
 
     def test_create_expense(self):
         response = self.client.post(
-            "/expenses", self.expense_data, content_type="application/json"
+            "/api/v1/expenses", self.expense_data, content_type="application/json"
         )
         self.assertEqual(response.status_code, 201)
         self.assertTrue(
