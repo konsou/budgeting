@@ -1,10 +1,12 @@
 from django.test import TestCase, Client
+from django.urls import reverse
+
 from expenses.models import Account, Category, Expense
 from datetime import date
 from decimal import Decimal
 
 
-class ExpenseAPITests(TestCase):
+class ExpenseCreateAPITests(TestCase):
     def setUp(self):
         self.client = Client()
         self.account = Account.objects.create(name="Test Account")
@@ -17,10 +19,11 @@ class ExpenseAPITests(TestCase):
             "recipient": "Test Recipient",
             "description": "Test Description",
         }
+        self.url = reverse("expenses")
 
     def test_create_expense(self):
         response = self.client.post(
-            "/api/v1/expenses", self.expense_data, content_type="application/json"
+            self.url, self.expense_data, content_type="application/json"
         )
         self.assertEqual(response.status_code, 201)
         self.assertTrue(
@@ -29,7 +32,7 @@ class ExpenseAPITests(TestCase):
 
     def test_create_expense_returns_correct_data(self):
         response = self.client.post(
-            "/api/v1/expenses", self.expense_data, content_type="application/json"
+            self.url, self.expense_data, content_type="application/json"
         )
         self.assertEqual(response.status_code, 201)
 
@@ -47,7 +50,7 @@ class ExpenseAPITests(TestCase):
 
     def test_create_expense_returns_valid_id(self):
         response = self.client.post(
-            "/api/v1/expenses", self.expense_data, content_type="application/json"
+            self.url, self.expense_data, content_type="application/json"
         )
         self.assertEqual(response.status_code, 201)
 
@@ -55,3 +58,36 @@ class ExpenseAPITests(TestCase):
         self.assertIsNotNone(returned_expense["id"])
         self.assertIsInstance(returned_expense["id"], int)
         self.assertTrue(Expense.objects.filter(id=returned_expense["id"]).exists())
+
+
+class ExpenseListAPITests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.account = Account.objects.create(name="Test Account")
+        self.category = Category.objects.create(name="Test Category")
+        self.expense_data = {
+            "date": date.today().isoformat(),
+            "amount": str(Decimal("100.00")),
+            "account": self.account,
+            "category": self.category,
+            "recipient": "Test Recipient",
+            "description": "Test Description",
+        }
+        self.expenses = [Expense.objects.create(**self.expense_data) for _ in range(5)]
+        self.url = reverse("expenses")
+
+    def test_list_expenses(self):
+        response = self.client.get(self.url, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+
+        returned_expenses = response.json()
+        self.assertEqual(len(returned_expenses), len(self.expenses))
+
+        for returned_expense in returned_expenses:
+            self.assertIn("id", returned_expense)
+            self.assertIn("date", returned_expense)
+            self.assertIn("amount", returned_expense)
+            self.assertIn("account", returned_expense)
+            self.assertIn("category", returned_expense)
+            self.assertIn("recipient", returned_expense)
+            self.assertIn("description", returned_expense)

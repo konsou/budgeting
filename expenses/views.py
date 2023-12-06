@@ -5,7 +5,13 @@ from expenses.models import Account, Category, Expense
 from expenses.serializers import ExpenseSerializer
 
 
-class ExpenseCreateView(APIView):
+class ExpenseView(APIView):
+    def get(self, request, format=None):
+        expenses = Expense.objects.all()
+        serializer = ExpenseSerializer(expenses, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # existing post method...
     def post(self, request, format=None):
         serializer = ExpenseSerializer(data=request.data)
         if serializer.is_valid():
