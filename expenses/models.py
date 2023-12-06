@@ -22,8 +22,12 @@ class Expense(models.Model):
     amount = models.DecimalField(
         max_digits=10, decimal_places=2, default=Decimal("0.00")
     )
-    account = models.ForeignKey(Account, null=True, blank=False, on_delete=models.SET_NULL)
-    category = models.ForeignKey(Category, null=True, blank=False, on_delete=models.SET_NULL)
+    account = models.ForeignKey(
+        Account, null=True, blank=False, on_delete=models.SET_NULL
+    )
+    category = models.ForeignKey(
+        Category, null=True, blank=False, on_delete=models.SET_NULL
+    )
     recipient = models.CharField(max_length=100)
     description = models.CharField(max_length=255)
 
